@@ -30,13 +30,13 @@ X_test_prepared = pipeline.transform(data["X_test"])
 
 ## Investigation notebooks
 
-The shared preparation file is on `main`. Each person creates one notebook, imports `prepare_datasets()`, and compares the two assigned algorithms. Fit each model on the training split and score it on the dev split.
+The shared preparation file is on `main`. Each person imports `prepare_datasets()`, fits each assigned model on the training split, and scores it on the dev split. Sarab's two algorithms are in separate notebooks.
 
 The data is about 86% benign, so accuracy by itself can hide a weak phishing detector. Report accuracy, plus precision, recall, and F1 for the phishing class, and ROC AUC. End the notebook with a short comparison of which model looks stronger and why.
 
 | Person | Notebook | Algorithms |
 | --- | --- | --- |
-| Sarab | `Aftab_Sarab_logreg_tree_investigation.ipynb` | Logistic regression and decision tree |
+| Sarab | `Aftab_Sarab_logreg_investigation.ipynb` and `Aftab_Sarab_tree_investigation.ipynb` | Logistic regression and decision tree |
 | Saurya | `Jonchhe_Saurya_logreg_svm_investigation.ipynb` | Logistic regression with different regularization/settings, and linear SVM |
 | Nipun | `Yonjan_Nipun_tree_svm_investigation.ipynb` | Decision tree with different depth/splitting settings, and linear SVM with different C/class-weight settings |
 
