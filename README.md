@@ -37,7 +37,7 @@ The data is about 86% benign, so accuracy by itself can hide a weak phishing det
 | Person | Notebook | Algorithms |
 | --- | --- | --- |
 | Sarab | `Aftab_Sarab_logreg_investigation.ipynb` and `Aftab_Sarab_tree_investigation.ipynb` | Logistic regression and decision tree |
-| Saurya | `Jonchhe_Saurya_logreg_svm_investigation.ipynb` | Logistic regression with different regularization/settings, and linear SVM |
+| Saurya | `Jonchhe_Saurya_logreg_investigation.ipynb` and `Jonchhe_Saurya_svm_investigation.ipynb` | Logistic regression with different regularization/settings, and linear SVM |
 | Nipun | `Yonjan_Nipun_tree_svm_investigation.ipynb` | Decision tree with different depth/splitting settings, and linear SVM with different C/class-weight settings |
 
 Use the constructors below as written. `random_state=42` stays the same for everyone so the runs can be compared. The shared preparation pipeline also stays the same. These fixed settings are for the investigation notebooks. Grid search comes later.
