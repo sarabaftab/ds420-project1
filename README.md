@@ -160,7 +160,135 @@ linear_svm = LinearSVC(
 | `dual` | `False` | `False` |
 | `max_iter` | `5000` | `5000` |
 
-After these notebooks, the team picks the top three algorithms. Each person then trains one of those with grid search.
+## Training notebooks
+
+The investigation is done. The three algorithms to tune are a decision tree, logistic regression, and a linear SVM. Each person grid-searches one algorithm, then scores the best model on the dev split. Leave the test split for `conclusion.ipynb`.
+
+| Person | Notebook | Algorithm |
+| --- | --- | --- |
+| Sarab | `Aftab_Sarab_tree.ipynb` | Decision tree |
+| Saurya | `Jonchhe_Saurya_logreg.ipynb` | Logistic regression |
+| Nipun | `Yonjan_Nipun_svm.ipynb` | Linear SVM |
+
+Use the same search setup in every notebook:
+
+- Import `prepare_datasets` and `build_preparation_pipeline` from `dataset_preparation.py`.
+- Pass `data["X_train"]` and `data["y_train"]` straight into `GridSearchCV`. Do not call `fit_transform` before the search. The preparation pipeline has to stay inside the search so the scaler is refit on each fold.
+- `scoring="f1"` so the search optimizes phishing F1. For these binary models, `f1` treats label `1` as the positive class.
+- `cv=3` and `random_state=42` anywhere the estimator accepts it.
+- After the search, predict on `data["X_dev"]` only. Report accuracy, phishing precision, phishing recall, phishing F1, and ROC AUC for the best model.
+
+```python
+from sklearn.model_selection import GridSearchCV
+from sklearn.pipeline import Pipeline
+
+from dataset_preparation import build_preparation_pipeline, prepare_datasets
+
+data = prepare_datasets()
+
+full_pipeline = Pipeline(
+    steps=[
+        ("prepare", build_preparation_pipeline()),
+        ("model", model),
+    ]
+)
+
+search = GridSearchCV(
+    full_pipeline,
+    param_grid,
+    scoring="f1",
+    cv=3,
+)
+search.fit(data["X_train"], data["y_train"])
+```
+
+`model` and `param_grid` are the ones in each person's section below. Every grid key starts with `model__` because the classifier sits in that pipeline step.
+
+### Sarab: decision tree
+
+```python
+from sklearn.tree import DecisionTreeClassifier
+
+model = DecisionTreeClassifier(random_state=42)
+
+param_grid = {
+    "model__criterion": ["gini", "entropy"],
+    "model__max_depth": [8, 16, None],
+    "model__min_samples_split": [2, 50],
+    "model__min_samples_leaf": [1, 20],
+    "model__max_features": [None, "sqrt"],
+    "model__class_weight": [None, "balanced"],
+}
+```
+
+This grid covers both investigation trees: the unrestricted Gini tree and the depth-limited entropy tree with balanced class weights.
+
+### Saurya: logistic regression
+
+Run two searches. The first is standard logistic regression. The second is the same classifier trained with mini-batch gradient descent, which the project asks for. Keep whichever one has the higher dev phishing F1.
+
+```python
+from sklearn.linear_model import LogisticRegression, SGDClassifier
+
+model = LogisticRegression(max_iter=2000, random_state=42)
+
+param_grid = [
+    {
+        "model__penalty": ["l2"],
+        "model__solver": ["lbfgs"],
+        "model__C": [0.01, 0.1, 1.0, 10.0],
+        "model__class_weight": [None, "balanced"],
+    },
+    {
+        "model__penalty": ["l1"],
+        "model__solver": ["liblinear"],
+        "model__C": [0.01, 0.1, 1.0, 10.0],
+        "model__class_weight": [None, "balanced"],
+    },
+]
+```
+
+`lbfgs` stays paired with L2, and `liblinear` stays paired with L1. Those are the two logistic regression settings from the investigation.
+
+Mini-batch version:
+
+```python
+model = SGDClassifier(
+    loss="log_loss",
+    penalty="l2",
+    learning_rate="optimal",
+    max_iter=1000,
+    random_state=42,
+)
+
+param_grid = {
+    "model__alpha": [0.00001, 0.0001, 0.001],
+    "model__class_weight": [None, "balanced"],
+}
+```
+
+`loss="log_loss"` keeps this as logistic regression. ROC AUC for `SGDClassifier` can use `decision_function`.
+
+### Nipun: linear SVM
+
+```python
+from sklearn.svm import LinearSVC
+
+model = LinearSVC(
+    penalty="l2",
+    loss="squared_hinge",
+    dual=False,
+    max_iter=5000,
+    random_state=42,
+)
+
+param_grid = {
+    "model__C": [0.01, 0.1, 1.0, 10.0],
+    "model__class_weight": [None, "balanced"],
+}
+```
+
+`C=1.0` with no class weighting and `C=0.01` with `class_weight="balanced"` are both inside this grid. `LinearSVC` has no `predict_proba`, so ROC AUC on the dev split uses `decision_function`.
 
 ## Repository files
 
